@@ -56,9 +56,9 @@ export class NodeTransformersRunner implements INodeTransformersRunner {
     }
 
     /**
-     * @param {T} astTree
-     * @param {NodeTransformer[]} nodeTransformerNames
-     * @param {NodeTransformationStage} nodeTransformationStage
+     * @param {T} astTree AST Tree
+     * @param {NodeTransformer[]} nodeTransformerNames 所有节点转换器名称
+     * @param {NodeTransformationStage} nodeTransformationStage 节点转换器阶段名称
      * @returns {T}
      */
     public transform <T extends ESTree.Node = ESTree.Program> (
@@ -69,12 +69,17 @@ export class NodeTransformersRunner implements INodeTransformersRunner {
         if (!nodeTransformerNames.length) {
             return astTree;
         }
-
+        // 节点转换器
+        console.log('\r\n');
+        console.log(nodeTransformationStage, ' ===> \r\n');
+        console.log('\r\n');
+        
         const normalizedNodeTransformers: TDictionary<INodeTransformer> =
-            this.buildNormalizedNodeTransformers(nodeTransformerNames, nodeTransformationStage);
+        this.buildNormalizedNodeTransformers(nodeTransformerNames, nodeTransformationStage);
+        // 节点转换器名称组
         const nodeTransformerNamesGroups: NodeTransformer[][] =
-            this.nodeTransformerNamesGroupsBuilder.build(normalizedNodeTransformers);
-
+        this.nodeTransformerNamesGroupsBuilder.build(normalizedNodeTransformers);
+        console.log('nodeTransformerNamesGroups', nodeTransformerNamesGroups);
         for (const nodeTransformerNamesGroup of nodeTransformerNamesGroups) {
             const enterVisitors: IVisitor[] = [];
             const leaveVisitors: IVisitor[] = [];
@@ -110,6 +115,7 @@ export class NodeTransformersRunner implements INodeTransformersRunner {
     }
 
     /**
+     * 构建规范化的节点转换器
      * @param {NodeTransformer[]} nodeTransformerNames
      * @param {NodeTransformationStage} nodeTransformationStage
      * @returns {TDictionary<INodeTransformer>}

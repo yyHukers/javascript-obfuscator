@@ -169,19 +169,31 @@ export class JavaScriptObfuscator implements IJavaScriptObfuscator {
         this.logger.info(LoggingMessage.RandomGeneratorSeed, this.randomGenerator.getInputSeed());
 
         // preparing code transformations
+        // ①准备阶段
         sourceCode = this.runCodeTransformationStage(sourceCode, CodeTransformationStage.PreparingTransformers);
-
+        console.log('[===①准备阶段】===]：', sourceCode);
         // parse AST tree
+        // ②转换成AST Tree
         const astTree: ESTree.Program = this.parseCode(sourceCode);
+        // astTree.body[0].kind = 'const';
+        // astTree.body[0].declarations[0].id.name = 'rename';
+
+        console.log('[===②转换成AST Tree===]：', astTree);
 
         // obfuscate AST tree
+        // ③操作AST Tree
         const obfuscatedAstTree: ESTree.Program = this.transformAstTree(astTree);
+        console.log('[===③操作AST Tree===]：', obfuscatedAstTree);
 
         // generate code
+        // ④生成code
         const generatorOutput: IGeneratorOutput = this.generateCode(sourceCode, obfuscatedAstTree);
+        console.log('[===④生成code===]：', generatorOutput);
 
         // finalizing code transformations
+        // ⑤完成code转换
         generatorOutput.code = this.runCodeTransformationStage(generatorOutput.code, CodeTransformationStage.FinalizingTransformers);
+        console.log('[===⑤完成code转换===]：', generatorOutput);
 
         const obfuscationTime: number = (Date.now() - timeStart) / 1000;
         this.logger.success(LoggingMessage.ObfuscationCompleted, obfuscationTime);
@@ -202,7 +214,9 @@ export class JavaScriptObfuscator implements IJavaScriptObfuscator {
      * @returns {Program}
      */
     private transformAstTree (astTree: ESTree.Program): ESTree.Program {
+        // 初始化阶段
         astTree = this.runNodeTransformationStage(astTree, NodeTransformationStage.Initializing);
+        console.log('初始化阶段: ', astTree);
 
         const isEmptyAstTree: boolean = NodeGuards.isProgramNode(astTree)
             && !astTree.body.length
@@ -214,20 +228,24 @@ export class JavaScriptObfuscator implements IJavaScriptObfuscator {
 
             return astTree;
         }
-
+        // 准备阶段
         astTree = this.runNodeTransformationStage(astTree, NodeTransformationStage.Preparing);
+        console.log('准备阶段: ', astTree);
 
+        // 死代码注入
         if (this.options.deadCodeInjection) {
             astTree = this.runNodeTransformationStage(astTree, NodeTransformationStage.DeadCodeInjection);
         }
-
+        // 控制流量扁平化
         astTree = this.runNodeTransformationStage(astTree, NodeTransformationStage.ControlFlowFlattening);
 
+        // 重命名属性
         if (this.options.renameProperties) {
             astTree = this.runNodeTransformationStage(astTree, NodeTransformationStage.RenameProperties);
         }
 
         astTree = this.runNodeTransformationStage(astTree, NodeTransformationStage.Converting);
+        // 重命名标识符
         astTree = this.runNodeTransformationStage(astTree, NodeTransformationStage.RenameIdentifiers);
         astTree = this.runNodeTransformationStage(astTree, NodeTransformationStage.StringArray);
 
@@ -294,8 +312,8 @@ export class JavaScriptObfuscator implements IJavaScriptObfuscator {
     }
 
     /**
-     * @param {Program} astTree
-     * @param {NodeTransformationStage} nodeTransformationStage
+     * @param {Program} astTree AST 树
+     * @param {NodeTransformationStage} nodeTransformationStage 节点转换阶段
      * @returns {Program}
      */
     private runNodeTransformationStage (astTree: ESTree.Program, nodeTransformationStage: NodeTransformationStage): ESTree.Program {

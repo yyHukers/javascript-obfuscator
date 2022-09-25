@@ -30,7 +30,9 @@ export class ASTParserFacade {
      * @returns {Program}
      */
     public static parse (sourceCode: string, config: acorn.Options): ESTree.Program | never {
+        console.log('sourceCode: ', sourceCode);
         const sourceTypeLength: number = ASTParserFacade.sourceTypes.length;
+        console.log('sourceTypeLength: ', sourceTypeLength);
 
         for (let i: number = 0; i < sourceTypeLength; i++) {
             try {
